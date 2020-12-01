@@ -15,9 +15,9 @@ import com.atguigu.springboot.bean.Employee;
 public class MyRedisConfig {
 
     @Bean
-    public RedisTemplate<Object, Employee> empRedisTemplate(RedisConnectionFactory redisConnectionFactory)
+    public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory)
             throws UnknownHostException {
-        RedisTemplate<Object, Employee> template = new RedisTemplate<Object, Employee>();
+        RedisTemplate<Object, Object> template = new RedisTemplate<Object, Object>();
         template.setConnectionFactory(redisConnectionFactory);
         Jackson2JsonRedisSerializer<Employee> serializer = new Jackson2JsonRedisSerializer<Employee>(Employee.class);
         template.setDefaultSerializer(serializer);
