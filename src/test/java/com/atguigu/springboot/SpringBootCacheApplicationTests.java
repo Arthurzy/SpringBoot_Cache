@@ -1,8 +1,13 @@
 package com.atguigu.springboot;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -50,6 +55,32 @@ class SpringBootCacheApplicationTests {
         }else {
             System.out.println(redisTemplate.opsForValue().get("emp-01").toString());
         }     
+    }
+    
+    @Test
+    public void test05_01() {
+        redisTemplate.setEnableTransactionSupport(true);
+        redisTemplate.multi();
+        
+        if (Boolean.FALSE.equals(redisTemplate.opsForValue().get("isSent"))) {
+            redisTemplate.opsForValue().set("isSent", Boolean.TRUE);
+            redisTemplate.exec();
+            System.out.println("现在发送!!!");
+        }else {
+            System.out.println("已经发送!!!");
+        }
+    }
+    
+    @Test
+    public void test05_02() {
+        redisTemplate.setEnableTransactionSupport(true);
+        redisTemplate.multi();
+        
+        redisTemplate.opsForValue().set("isSent", Boolean.TRUE);
+        redisTemplate.exec();
+        
+        System.out.println("不发送!!!");
+ 
     }
     
 	@Test
