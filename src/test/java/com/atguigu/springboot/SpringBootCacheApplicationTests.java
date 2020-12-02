@@ -1,13 +1,10 @@
 package com.atguigu.springboot;
 
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -58,35 +55,38 @@ class SpringBootCacheApplicationTests {
     }
     
     @Test
-    public void test05_01() {
-        redisTemplate.setEnableTransactionSupport(true);
-        redisTemplate.multi();
-        
-        if (Boolean.FALSE.equals(redisTemplate.opsForValue().get("isSent"))) {
-            redisTemplate.opsForValue().set("isSent", Boolean.TRUE);
-            redisTemplate.exec();
-            System.out.println("现在发送!!!");
-        }else {
-            System.out.println("已经发送!!!");
-        }
-    }
-    
-    @Test
-    public void test05_02() {
-        redisTemplate.setEnableTransactionSupport(true);
-        redisTemplate.multi();
-        
-        redisTemplate.opsForValue().set("isSent", Boolean.TRUE);
-        redisTemplate.exec();
-        
-        System.out.println("不发送!!!");
- 
-    }
-    
-	@Test
 	void contextLoads() {
 	    Employee employee = employeeMapper.getEmpById(1);
 	    System.out.println(employee);
 	}
+    
+    @Test
+    public void test05() throws InterruptedException {
+        for (int i = 0; i < 100; i++) {
+			new Thread(new TestRedisMultiTread(), "redis-thread-" + i).start();	
+		}
+			
+		Thread.sleep((long)10000);
+		redisTemplate.delete("isSent");
+    }
 
+    
+    class TestRedisMultiTread implements Runnable{
+
+		@Override
+		public void run() {			
+//			redisTemplate.setEnableTransactionSupport(true);
+//			redisTemplate.watch("isSent");
+//	        redisTemplate.multi();
+	        Boolean isSent = redisTemplate.opsForValue().setIfAbsent("isSent", 1, 30, TimeUnit.MINUTES);
+	        
+	        if (null != isSent && isSent) {
+//	        	redisTemplate.exec();
+	            System.out.println(Thread.currentThread().getName() + "开始发送!!!");
+	        }else {
+	        	System.out.println(Thread.currentThread().getName() + "不用发送!!!!!!!!!!!!! ");
+	            
+	        }	        
+		}    	
+    }
 }

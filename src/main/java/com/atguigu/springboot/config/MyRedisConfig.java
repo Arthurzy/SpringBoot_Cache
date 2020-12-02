@@ -9,8 +9,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 
-import com.atguigu.springboot.bean.Employee;
-
 @Configuration
 public class MyRedisConfig {
 
@@ -19,7 +17,7 @@ public class MyRedisConfig {
             throws UnknownHostException {
         RedisTemplate<Object, Object> template = new RedisTemplate<Object, Object>();
         template.setConnectionFactory(redisConnectionFactory);
-        Jackson2JsonRedisSerializer<Employee> serializer = new Jackson2JsonRedisSerializer<Employee>(Employee.class);
+        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<Object>(Object.class);
         template.setDefaultSerializer(serializer);
         return template;
     }
