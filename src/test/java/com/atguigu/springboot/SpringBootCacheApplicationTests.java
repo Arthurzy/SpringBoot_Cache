@@ -69,6 +69,30 @@ class SpringBootCacheApplicationTests {
 		Thread.sleep((long)10000);
 		redisTemplate.delete("isSent");
     }
+    
+    @Test
+    public void test06() throws InterruptedException {
+        for (int i = 0; i < 100; i++) {
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					Boolean isSent = redisTemplate.opsForValue().setIfAbsent(Thread.currentThread().getName(), 1, 30, TimeUnit.MINUTES);
+			        
+			        if (null != isSent && isSent) {
+//			        	redisTemplate.exec();
+			            System.out.println(Thread.currentThread().getName() + "开始发送!!!");
+			        }else {
+			        	System.out.println(Thread.currentThread().getName() + "不用发送!!!!!!!!!!!!! ");
+			            
+			        }	    
+				}
+			}, "redis-thread-" + i).start();	
+		}
+			
+		Thread.sleep((long)10000);
+		redisTemplate.delete("isSent");
+    }
 
     
     class TestRedisMultiTread implements Runnable{
