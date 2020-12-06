@@ -1,5 +1,7 @@
 package com.atguigu.springboot;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
@@ -60,32 +62,20 @@ class SpringBootCacheApplicationTests {
 	    System.out.println(employee);
 	}
     
-    @Test
+    @Test //测试多线程抢单个key
     public void test05() throws InterruptedException {
-        for (int i = 0; i < 100; i++) {
-			new Thread(new TestRedisMultiTread(), "redis-thread-" + i).start();	
-		}
-			
-		Thread.sleep((long)10000);
-		redisTemplate.delete("isSent");
-    }
-    
-    @Test
-    public void test06() throws InterruptedException {
         for (int i = 0; i < 100; i++) {
 			new Thread(new Runnable() {
 				
 				@Override
 				public void run() {
-					Boolean isSent = redisTemplate.opsForValue().setIfAbsent(Thread.currentThread().getName(), 1, 30, TimeUnit.MINUTES);
-			        
-			        if (null != isSent && isSent) {
-//			        	redisTemplate.exec();
-			            System.out.println(Thread.currentThread().getName() + "开始发送!!!");
-			        }else {
-			        	System.out.println(Thread.currentThread().getName() + "不用发送!!!!!!!!!!!!! ");
-			            
-			        }	    
+					 Boolean isSent = redisTemplate.opsForValue().setIfAbsent("isSent", 1, 30, TimeUnit.MINUTES);	        
+				        if (null != isSent && isSent) {
+				            System.out.println(Thread.currentThread().getName() + "开始发送!!!");
+				        }else {
+				        	System.out.println(Thread.currentThread().getName() + "不用发送!!!!!!!!!!!!! ");
+				            
+				        }	    
 				}
 			}, "redis-thread-" + i).start();	
 		}
@@ -93,24 +83,30 @@ class SpringBootCacheApplicationTests {
 		Thread.sleep((long)10000);
 		redisTemplate.delete("isSent");
     }
-
     
-    class TestRedisMultiTread implements Runnable{
-
-		@Override
-		public void run() {			
-//			redisTemplate.setEnableTransactionSupport(true);
-//			redisTemplate.watch("isSent");
-//	        redisTemplate.multi();
-	        Boolean isSent = redisTemplate.opsForValue().setIfAbsent("isSent", 1, 30, TimeUnit.MINUTES);
-	        
-	        if (null != isSent && isSent) {
-//	        	redisTemplate.exec();
-	            System.out.println(Thread.currentThread().getName() + "开始发送!!!");
-	        }else {
-	        	System.out.println(Thread.currentThread().getName() + "不用发送!!!!!!!!!!!!! ");
-	            
-	        }	        
-		}    	
+    @Test //测试多线程各自生成key
+    public void test06() throws InterruptedException {
+    	List<String> keys = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					Boolean isSent = redisTemplate.opsForValue().setIfAbsent(Thread.currentThread().getName(), 1, 30, TimeUnit.MINUTES);			        
+			        if (null != isSent && isSent) {
+			            System.out.println(Thread.currentThread().getName() + "开始发送!!!");
+			        }else {
+			        	System.out.println(Thread.currentThread().getName() + "不用发送!!!!!!!!!!!!! ");
+			            
+			        }	    
+			        keys.add(Thread.currentThread().getName());
+				}
+			}, "redis-thread-" + i).start();	
+		}
+			
+		Thread.sleep((long)10000);
+		redisTemplate.delete(keys);
     }
+
+   
 }
